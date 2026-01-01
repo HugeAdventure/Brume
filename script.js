@@ -62,17 +62,35 @@ const ui = {
     }
 };
 
+// ==========================================
+// 3. CORE ENGINE (Fixed)
+// ==========================================
 const engine = {
-    () {
+    // 1. Fixed the missing function name 'init'
+    init() {
         this.renderNav();
         this.initParallax();
         this.loadPage("intro");
         
+        // Navigation Logic
         document.querySelectorAll('.nav-link').forEach(btn => {
             btn.addEventListener('click', () => {
-                const target = btn.dataset.view;
-                this.switchView(target);
+                const targetView = btn.dataset.view;
+                if(targetView) {
+                    this.switchView(targetView);
+                }
             });
+        });
+
+        // Search Key Listener (Press '/')
+        window.addEventListener('keydown', (e) => {
+            if(e.key === '/') {
+                // Only focus if Wiki is active
+                if(document.getElementById('view-wiki').classList.contains('active')) {
+                    e.preventDefault();
+                    document.getElementById('wiki-search')?.focus();
+                }
+            }
         });
     },
 
@@ -100,6 +118,8 @@ const engine = {
 
     renderNav() {
         const nav = document.getElementById('side-navigation');
+        if(!nav) return;
+        
         const branches = [...new Set(Object.values(WIKI_DATABASE).map(i => i.branch))];
         let html = '';
         branches.forEach(branch => {
@@ -114,9 +134,23 @@ const engine = {
     loadPage(key) {
         const data = WIKI_DATABASE[key];
         if(!data) return;
-        document.getElementById('page-header').innerHTML = `<h1>${data.title}</h1>`;
-        document.getElementById('page-render').innerHTML = data.components.map(c => this.components[c.type](c)).join('');
-        document.getElementById('scroll-surface').scrollTop = 0;
+        
+        const header = document.getElementById('page-header');
+        const render = document.getElementById('page-render');
+        
+        if(header) header.innerHTML = `<h1>${data.title}</h1>`;
+        if(render) render.innerHTML = data.components.map(c => this.components[c.type](c)).join('');
+        
+        const scrollSurface = document.getElementById('scroll-surface');
+        if(scrollSurface) scrollSurface.scrollTop = 0;
+    },
+
+    search(val) {
+        const query = val.toLowerCase();
+        document.querySelectorAll('.nav-leaf').forEach(leaf => {
+            const isMatch = leaf.innerText.toLowerCase().includes(query);
+            leaf.style.display = isMatch ? "block" : "none";
+        });
     },
 
     components: {
@@ -125,7 +159,7 @@ const engine = {
             <div class="infobox">
                 <div class="infobox-header">${d.data.title}</div>
                 <div class="infobox-img"><img src="${d.data.image}"></div>
-                ${Object.entries(d.data.stats).map(([k,v]) => `<div class="info-row"><span>${k}</span><span style="color:var(--text-highlight)">${v}</span></div>`).join('')}
+                ${Object.entries(d.data.stats).map(([k,v]) => `<div class="info-row"><span>${k}</span><span style="color:#fff">${v}</span></div>`).join('')}
             </div>`,
         ability_card: d => `
             <div class="ability-card">
@@ -141,6 +175,8 @@ const engine = {
 
     initParallax() {
         const container = document.getElementById('parallax-container');
+        if(!container) return;
+        
         for(let i=0; i<20; i++) {
             const d = document.createElement('div');
             d.className = 'mist-particle';
@@ -237,20 +273,4 @@ const armory = {
     }
 };
 
-window.onload = () => engine.init() {
-        this.renderNav();
-        this.initParallax();
-        
-        this.loadPage("intro");
-        
-        document.querySelectorAll('.nav-link').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetView = btn.dataset.view;
-                if(targetView) {
-                    this.switchView(targetView);
-                }
-            });
-        });
-
-        this.attachListeners();
-    },
+window.onload = () => engine.init();
