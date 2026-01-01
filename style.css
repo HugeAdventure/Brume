@@ -1,0 +1,32 @@
+body {
+    background-color: #0d0d0d;
+    color: white;
+    font-family: 'Minecraftia', sans-serif;
+}
+
+.item-card {
+    background: #1a1a1a;
+    border: 2px solid #333;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 5px;
+    display: inline-block;
+    width: 300px;
+    vertical-align: top;
+}
+
+.item-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.lore-line {
+    display: block;
+    color: #AAAAAA; 
+    text-shadow: 2px 2px #000;
+}
+
+.color-a { color: #55FF55; } 
+.color-c { color: #FF5555; } 
+.color-6 { color: #FFAA00; }
