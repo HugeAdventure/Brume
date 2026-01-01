@@ -3,61 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BRUME | The Archive</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Share+Tech+Mono&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    
+    <title>BRUME | The Wiki </title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="scanline"></div>
-    <div class="vignette"></div>
+    <div class="mist-engine">
+        <div class="mist-layer mist-1"></div>
+        <div class="mist-layer mist-2"></div>
+    </div>
 
-    <nav class="master-nav">
-        <div class="nav-container">
-            <div class="logo">BRUME<span class="glitch-text" data-text="ARCHIVE">ARCHIVE</span></div>
-            <div class="nav-links">
-                <a href="#" class="nav-link">HOME</a>
-                <a href="#" class="nav-link active">DATABASE</a>
-                <a href="#" class="nav-link">LEADERBOARDS</a>
-                <div class="status-chip">
-                    <span class="pulse-dot"></span> 242 PLAYERS
-                </div>
+    <header class="main-header glass">
+        <div class="header-container">
+            <div class="brand" onclick="engine.showView('wiki')">
+                <span class="logo-text">BRUME</span>
+            </div>
+            <nav class="main-nav">
+                <button class="nav-link active" id="btn-wiki" onclick="engine.showView('wiki')">WIKI</button>
+                <button class="nav-link" id="btn-armory" onclick="engine.showView('armory')">STATS</button>
+                <button class="nav-link" id="btn-leaderboard" onclick="engine.showView('leaderboard')">LEADERBOARD</button>
+            </nav>
+            <div class="header-actions">
+                <button class="play-btn" onclick="engine.copyIP()">PLAY.BRUME.NET</button>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <main class="wiki-layout">
-        <aside class="sidebar">
-            <div class="sidebar-section">
-                <div class="section-label">CATEGORIES</div>
-                <button class="cat-btn active" onclick="filter('all')"><i class="fas fa-layer-group"></i> ALL ENTRIES</button>
-                <button class="cat-btn" onclick="filter('ARMOR')"><i class="fas fa-shield-halved"></i> ARMOR SETS</button>
-                <button class="cat-btn" onclick="filter('WAND')"><i class="fas fa-wand-sparkles"></i> MAGIC WANDS</button>
-                <button class="cat-btn" onclick="filter('MATERIAL')"><i class="fas fa-gem"></i> MATERIALS</button>
-            </div>
-            
-            <div class="sidebar-section">
-                <div class="section-label">FILTERS</div>
+    <div class="ui-shell">
+        <section id="view-wiki" class="view-container active">
+            <aside class="sidebar glass">
+                <div class="search-container">
+                    <input type="text" id="wiki-search" placeholder="Search archive..." onkeyup="engine.search(this.value)">
+                    <kbd>/</kbd>
+                </div>
+                <nav class="nav-tree" id="side-navigation"></nav>
+            </aside>
+            <main class="content-stage" id="scroll-surface">
+                <div class="content-container">
+                    <header id="page-header" class="animate-in"></header>
+                    <article id="page-render" class="animate-in"></article>
+                </div>
+            </main>
+        </section>
+
+        <section id="view-armory" class="view-container">
+            <div class="armory-hero">
+                <h1>PLAYER ARMORY</h1>
+                <p>Inspect the gear and statistics of any Player.</p>
                 <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="wikiSearch" placeholder="Search Database..." onkeyup="searchWiki()">
+                    <input type="text" id="player-search" placeholder="Enter Username...">
+                    <button onclick="armory.fetchPlayer()">SEARCH</button>
                 </div>
             </div>
-        </aside>
-
-        <section class="content-area">
-            <div class="page-header">
-                <h2>ITEM REGISTRY <span class="serial-no">// VER. 1.21.1</span></h2>
-            </div>
-
-            <div class="item-grid" id="wikiGrid">
+            
+            <div id="player-profile" class="profile-card glass" style="display: none;">
+                <div class="profile-header">
+                    <img id="p-head" src="" alt="Head">
+                    <div class="name-box">
+                        <h2 id="p-name">PlayerName</h2>
+                        <div id="p-level" class="level-badge">LVL 0</div>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item"><small>COINS</small><span id="p-coins">0</span></div>
+                    <div class="stat-item"><small>TOTAL XP</small><span id="p-xp">0</span></div>
+                    <div class="stat-item"><small>STATUS</small><span id="p-status" style="color: #55FF55;">ONLINE</span></div>
+                </div>
+                <h3>INVENTORY</h3>
+                <div id="inventory-grid" class="inv-grid"></div>
             </div>
         </section>
-    </main>
 
-    <script src="main.js"></script>
+        <section id="view-leaderboard" class="view-container">
+            <div class="leaderboard-wrapper">
+                <h1>TOP PLAYERS</h1>
+                <div class="lb-table-container glass">
+                    <table id="lb-table">
+                        <thead>
+                            <tr><th>RANK</th><th>PLAYER</th><th>LEVEL</th><th>COINS</th></tr>
+                        </thead>
+                        <tbody id="lb-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
