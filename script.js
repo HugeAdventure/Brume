@@ -247,7 +247,61 @@ const armory = {
             grid.appendChild(slot);
         }
     },
-
+    function openInspector(item) {
+        if(!item) return;
+        
+        const modal = document.getElementById('item-inspector');
+        const card = document.getElementById('relic-card');
+        
+        const icon = document.getElementById('insp-icon');
+        icon.src = `assets/items/${item.id.toLowerCase()}.png`;
+        icon.onerror = () => icon.src = 'https://minecraft.wiki/images/Invicon_Barrier.png';
+        
+        if (item.enchanted) icon.classList.add('enchanted-glint');
+        else icon.classList.remove('enchanted-glint');
+    
+        const nameEl = document.getElementById('insp-name');
+        const loreEl = document.getElementById('insp-lore');
+        const rarityEl = document.getElementById('insp-rarity');
+        const glowEl = document.getElementById('insp-glow');
+    
+        const rarityColors = {
+            'COMMON': '#ffffff',
+            'RARE': '#55FFFF', // MC Aqua
+            'EPIC': '#AA00AA', // MC Purple
+            'LEGENDARY': '#FFAA00', // MC Gold
+            'MYTHIC': '#FF5555' // MC Red
+        };
+        
+        const rColor = rarityColors[item.rarity?.toUpperCase()] || '#ffffff';
+        
+        nameEl.style.color = rColor;
+        nameEl.innerText = item.name || item.id;
+        
+        loreEl.innerHTML = (item.lore || "No description available.").replace(/\n/g, '<br>');
+        
+        rarityEl.style.color = rColor;
+        rarityEl.innerText = (item.rarity || "COMMON").toUpperCase();
+        
+        glowEl.style.backgroundColor = rColor;
+    
+        modal.style.display = 'flex';
+        
+        modal.onmousemove = (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            
+            card.style.transform = `perspective(1000px) rotateY(${x / 20}deg) rotateX(${-y / 20}deg)`;
+        };
+    }
+    
+    function closeInspector(e) {
+        if (e.target.id === 'item-inspector') {
+            document.getElementById('item-inspector').style.display = 'none';
+            document.getElementById('relic-card').style.transform = 'none';
+        }
+    }
     async loadLeaderboard() {
         const tbody = document.getElementById('lb-body');
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Summoning Spirits...</td></tr>';
@@ -272,5 +326,7 @@ const armory = {
         }
     }
 };
+
+
 
 window.onload = () => engine.init();
