@@ -1,224 +1,147 @@
 const WIKI_DATABASE = {
     "intro": {
         branch: "General",
-        title: "The Brume Core",
+        title: "Welcome to Brume",
         components: [
-            { type: "paragraph", text: "<b>Brume</b> is a high-performance RPG sandbox built on Minecraft 1.21.1. At its heart lies a bespoke 8,000+ LoC engine that overrides vanilla physics to provide a weighted, mechanical combat and mining experience." },
+            { type: "paragraph", text: "<b>The Mist has risen.</b> Brume is a procedural dungeon crawler network where no two runs are identical. Built on a custom NBT-driven engine, it features weighted combat, massive bosses, and infinite scaling." },
             { type: "infobox", data: {
-                title: "Server Metadata",
+                title: "Server Status",
                 image: "https://minecraft.wiki/images/Invicon_Crying_Obsidian.png",
-                stats: { "Developer": "HugeAdventure", "Version": "1.21.1", "Engine": "Brume v2.4", "Logic": "NBT-Driven" }
+                stats: { "Version": "1.21.1", "Mode": "Rogue-lite", "Dungeons": "Procedural", "Economy": "Gold/Souls" }
             }},
-            { type: "paragraph", text: "Key innovations include a <b>Rolling Window DPS</b> tracker, <b>Client-Sided Interpolation</b> for visuals, and a <b>Master Registry</b> system that allows for real-time item balancing without player intervention." }
+            { type: "paragraph", text: "Explore the depths, defeat the <b>Constructs</b>, and extract with your loot before the fog consumes you." }
         ]
     },
-    "npc_fennel": {
-        branch: "Characters",
-        title: "Fennel",
+    "mech_procgen": {
+        branch: "Mechanics",
+        title: "Procedural Generation",
         components: [
-            { type: "infobox", data: {
-                title: "Fennel",
-                image: "https://minotar.net/helm/Fennel/100.png",
-                stats: { "Role": "The Guide", "Location": "Hub / Tutorial", "Vibe": "Chaotic Good", "Sound": "Pling / Enderman" }
-            }},
-            { type: "paragraph", text: "Fennel is the first inhabitant you encounter. He manages the <b>Training Grounds</b> and handles the early-game progression." },
-            { type: "dialogue_box", npc: "Fennel", text: "Look at you! A regular bird! Just jump before you swing—it makes the 'crunch' sound better." }
+            { type: "paragraph", text: "Brume uses a 'Room-Tile' algorithm. Every time you enter a portal, the engine stitches together pre-built schematic fragments into a coherent layout, populating it with random loot chests and mob spawners based on the 'Danger Level'." }
         ]
     },
-    "npc_sliver": {
-        branch: "Characters",
-        title: "Sliver",
+    "boss_goliath": {
+        branch: "Bestiary",
+        title: "The Goliath",
         components: [
             { type: "infobox", data: {
-                title: "Sliver",
-                image: "https://minotar.net/helm/Sliver/100.png",
-                stats: { "Role": "The Gambler", "Location": "The Hub", "Limit": "5 Rolls/Day", "Currency": "Coins" }
+                title: "Construct: Goliath",
+                image: "https://minecraft.wiki/images/Invicon_Iron_Golem.png",
+                stats: { "HP": "25,000", "Type": "Tank", "Weakness": "Lightning", "Drop": "Core Fragment" }
             }},
-            { type: "paragraph", text: "Sliver runs the <b>Cursed Dice</b> casino. He deals in high-stakes dungeon loot and rare reagents." },
-            { type: "dialogue_box", npc: "Sliver", text: "The void is closed for you today. Limits exist for a reason, friend." }
+            { type: "paragraph", text: "A relic of the Old World. The Goliath slumbered beneath the Cathedral until the mist woke it. Its heavy plating makes it immune to arrows." },
+            { type: "ability_card", name: "Seismic Slam", trigger: "PHASE 2", desc: "Leaps into the air and crashes down, dealing massive AoE damage and slowing players." }
         ]
     },
-    "item_breeze_helmet": {
-        branch: "Equipment",
-        title: "Breeze Helmet",
+    "item_void_blade": {
+        branch: "Armory",
+        title: "Voidwalker Blade",
         components: [
             { type: "infobox", data: {
-                title: "Breeze Helmet",
-                image: "https://minecraft.wiki/images/Invicon_Leather_Helmet.png",
-                stats: { "Rarity": "RARE", "ID": "BREEZE_HELMET", "Set": "Breeze", "Type": "Helmet" }
+                title: "Voidwalker Blade",
+                image: "https://minecraft.wiki/images/Invicon_Netherite_Sword.png",
+                stats: { "Rarity": "LEGENDARY", "Class": "Assassin", "Dmg": "14-18" }
             }},
-            { type: "loot_table", title: "NBT Base Stats", rows: [
-                ["❤ Health", "+5"],
-                ["🛡 Defense", "+25"],
-                ["⚡ Speed", "+7"]
-            ]},
-            { type: "ability_card", name: "Gale Force", trigger: "SET BONUS", desc: "5% chance on hit to launch skyward. While airborne, deal +40% increased melee damage." }
+            { type: "loot_table", title: "Stats", rows: [ ["⚔ Damage", "+18"], ["⚡ Atk Speed", "+1.6"], ["crit Crit Chance", "15%"] ]},
+            { type: "ability_card", name: "Shadow Step", trigger: "RIGHT CLICK", desc: "Teleport 5 blocks forward and become invisible for 2 seconds. Cooldown: 10s." }
         ]
     }
-    
 };
-
 
 const ui = {
     notify(message, type = 'info') {
         const container = document.getElementById('notification-container');
-        if(!container) return;
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
-        toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><span>${type === 'error' ? '✕' : '✦'}</span> ${message}</div>`;
+        toast.innerHTML = `<span>${type === 'error' ? '!' : '✓'}</span> ${message}`;
         container.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; }, 3000);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(50px)'; }, 3000);
         setTimeout(() => toast.remove(), 3500);
     },
-
     setLoading(state) {
-        const loader = document.getElementById('global-loader');
-        if(loader) loader.style.display = state ? 'flex' : 'none';
+        document.getElementById('global-loader').style.display = state ? 'flex' : 'none';
     }
 };
-
 
 const engine = {
     init() {
         this.renderNav();
         this.initParallax();
-        this.attachListeners();
-        this.loadPage("intro"); 
-        this.showView('wiki');
+        this.loadPage("intro");
+        
+        document.querySelectorAll('.nav-link').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.dataset.view;
+                this.switchView(target);
+            });
+        });
+    },
+
+    switchView(viewId) {
+        document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+        document.getElementById(`view-${viewId}`).classList.add('active');
+        
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelector(`[data-view="${viewId}"]`).classList.add('active');
+
+        if (viewId === 'leaderboard') armory.loadLeaderboard();
     },
 
     renderNav() {
         const nav = document.getElementById('side-navigation');
-        const branches = [...new Set(Object.values(WIKI_DATABASE).map(item => item.branch))];
-        
+        const branches = [...new Set(Object.values(WIKI_DATABASE).map(i => i.branch))];
         let html = '';
         branches.forEach(branch => {
             html += `<div class="branch-label">${branch}</div>`;
-            for (let key in WIKI_DATABASE) {
-                if (WIKI_DATABASE[key].branch === branch) {
-                    html += `<div class="nav-leaf" id="nav-${key}" onclick="engine.loadPage('${key}')">${WIKI_DATABASE[key].title}</div>`;
-                }
-            }
+            Object.entries(WIKI_DATABASE).filter(([_, v]) => v.branch === branch).forEach(([k, v]) => {
+                html += `<div class="nav-leaf" onclick="engine.loadPage('${k}')">${v.title}</div>`;
+            });
         });
         nav.innerHTML = html;
-    },
-
-    showView(viewId) {
-        document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-        document.getElementById(`view-${viewId}`).classList.add('active');
-        
-        document.querySelectorAll('.nav-link').forEach(l => {
-            l.classList.toggle('active', l.innerText.toLowerCase() === viewId.toLowerCase());
-        });
-
-        if(viewId === 'leaderboard') this.loadLeaderboard();
     },
 
     loadPage(key) {
         const data = WIKI_DATABASE[key];
         if(!data) return;
-
-        const header = document.getElementById('page-header');
-        const render = document.getElementById('page-render');
-
-        header.innerHTML = `<h1>${data.title}</h1>`;
-        render.innerHTML = data.components.map(c => this.components[c.type](c)).join('');
-
-        document.querySelectorAll('.nav-leaf').forEach(l => l.classList.remove('active'));
-        const activeNav = document.getElementById(`nav-${key}`);
-        if(activeNav) activeNav.classList.add('active');
-        
+        document.getElementById('page-header').innerHTML = `<h1>${data.title}</h1>`;
+        document.getElementById('page-render').innerHTML = data.components.map(c => this.components[c.type](c)).join('');
         document.getElementById('scroll-surface').scrollTop = 0;
     },
 
     components: {
-        paragraph: (d) => `<p class="paragraph">${d.text}</p>`,
-        infobox: (d) => `
+        paragraph: d => `<p class="paragraph">${d.text}</p>`,
+        infobox: d => `
             <div class="infobox">
                 <div class="infobox-header">${d.data.title}</div>
-                <div class="infobox-img-container"><img src="${d.data.image}"></div>
-                <div class="infobox-data">
-                    ${Object.entries(d.data.stats).map(([k,v]) => `
-                        <div class="info-row"><span class="info-label">${k}</span><span>${v}</span></div>
-                    `).join('')}
-                </div>
-            </div>
-        `,
-        ability_card: (d) => `
-            <div class="ability-card" style="border: 1px solid var(--accent); padding: 15px; border-radius: 8px; margin-bottom: 20px; background: rgba(81, 85, 155, 0.1);">
-                <div class="ability-header" style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span class="ability-trigger" style="font-size:10px; color:var(--accent); font-weight:bold;">${d.trigger}</span>
-                    <span class="ability-name" style="font-weight:bold; letter-spacing:1px;">${d.name}</span>
-                </div>
-                <div class="ability-desc" style="font-size:14px; color:#aaa;">${d.desc}</div>
-            </div>
-        `,
-        loot_table: (d) => `
-            <div class="loot-table-container">
-                <h3 style="margin-bottom:10px; font-size: 14px; text-transform: uppercase; color: #666;">${d.title}</h3>
-                <div class="wiki-table" style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
-                    ${d.rows.map(r => `<div class="info-row"><span>${r[0]}</span><span style="color: #fff;">${r[1]}</span></div>`).join('')}
-                </div>
-            </div>
-        `,
-        dialogue_box: (d) => `
-            <div class="dialogue-box" style="border-left: 3px solid var(--accent); padding-left: 20px; margin: 30px 0; font-style: italic;">
-                <span class="dialogue-npc" style="display:block; color:var(--accent); font-weight:bold; font-style: normal; margin-bottom:5px;">${d.npc}:</span>
-                <span class="dialogue-text">"${d.text}"</span>
-            </div>
-        `
+                <div class="infobox-img"><img src="${d.data.image}"></div>
+                ${Object.entries(d.data.stats).map(([k,v]) => `<div class="info-row"><span>${k}</span><span style="color:var(--text-highlight)">${v}</span></div>`).join('')}
+            </div>`,
+        ability_card: d => `
+            <div class="ability-card">
+                <div class="ab-head"><span class="ab-trigger">${d.trigger}</span> <span>${d.name}</span></div>
+                <div class="ab-desc">${d.desc}</div>
+            </div>`,
+        loot_table: d => `
+            <div class="loot-table">
+                <h3>${d.title}</h3>
+                ${d.rows.map(r => `<div class="info-row"><span>${r[0]}</span><span class="stat-val">${r[1]}</span></div>`).join('')}
+            </div>`
     },
 
     initParallax() {
-        const stage = document.getElementById('parallax-container');
-        if(!stage) return;
-        const blocks = [
-            'https://minecraft.wiki/images/Invicon_Grass_Block.png',
-            'https://minecraft.wiki/images/Invicon_Deepslate.png',
-            'https://minecraft.wiki/images/Invicon_Crying_Obsidian.png'
-        ];
-
-        for(let i=0; i<15; i++) {
-            const el = document.createElement('img');
-            el.src = blocks[Math.floor(Math.random() * blocks.length)];
-            el.className = 'p-block';
-            el.style.position = 'absolute';
-            el.style.left = Math.random() * 100 + 'vw';
-            el.style.top = Math.random() * 100 + 'vh';
-            el.style.width = '32px'; el.style.opacity = '0.2'; el.style.imageRendering = 'pixelated';
-            el.dataset.depth = Math.random() * 0.1 + 0.02;
-            stage.appendChild(el);
+        const container = document.getElementById('parallax-container');
+        for(let i=0; i<20; i++) {
+            const d = document.createElement('div');
+            d.className = 'mist-particle';
+            d.style.left = Math.random() * 100 + '%';
+            d.style.top = Math.random() * 100 + '%';
+            d.style.animationDuration = (Math.random() * 20 + 10) + 's';
+            container.appendChild(d);
         }
     },
-
-    search(val) {
-        const query = val.toLowerCase();
-        document.querySelectorAll('.nav-leaf').forEach(leaf => {
-            const isMatch = leaf.innerText.toLowerCase().includes(query);
-            leaf.style.display = isMatch ? "block" : "none";
-        });
-    },
-
+    
     copyIP() {
-        navigator.clipboard.writeText("play.brume.net");
-        ui.notify("IP Copied to Clipboard!");
-    },
-
-    attachListeners() {
-        document.getElementById('scroll-surface').addEventListener('scroll', (e) => {
-            const top = e.target.scrollTop;
-            document.querySelectorAll('.p-block').forEach(p => {
-                const depth = p.dataset.depth;
-                p.style.transform = `translateY(${top * depth * -1}px) rotate(${top * 0.05}deg)`;
-            });
-        });
-
-        window.addEventListener('keydown', (e) => {
-            if(e.key === '/') {
-                e.preventDefault();
-                document.getElementById('wiki-search')?.focus();
-            }
-        });
+        navigator.clipboard.writeText('play.brume.net');
+        ui.notify('Server IP Copied!');
     }
 };
 
@@ -226,70 +149,80 @@ const engine = {
 const armory = {
     async fetchPlayer() {
         const input = document.getElementById('player-search').value.trim();
-        if(!input) {
-            ui.notify("Enter a traveler's name or UUID", "error");
-            return;
-        }
+        if(!input) return ui.notify("Please enter a username", "error");
 
         ui.setLoading(true);
-
         try {
-            // Calling your new API
-            const response = await fetch(`/api/stats?uuid=${encodeURIComponent(input)}`);
+            const res = await fetch(`/api?type=player&uuid=${input}`);
+            const data = await res.json();
             
-            if (!response.ok) throw new Error("NOT_FOUND");
+            if(data.error) throw new Error(data.error);
 
-            const data = await response.json();
-            
-            // Animation delay for "feel"
-            setTimeout(() => {
-                this.renderProfile(data);
-                ui.setLoading(false);
-                ui.notify(`Archive retrieved for ${data.name}`);
-            }, 600);
-
-        } catch (e) {
-            ui.setLoading(false);
+            this.renderProfile(data);
+            ui.notify(`Loaded data for ${data.name}`);
+        } catch(e) {
+            ui.notify(e.message, "error");
             document.getElementById('player-profile').style.display = 'none';
-            if(e.message === "NOT_FOUND") {
-                ui.notify("Traveler not found in the archives.", "error");
-            } else {
-                ui.notify("Connection to the SQL database failed.", "error");
-            }
+        } finally {
+            ui.setLoading(false);
         }
     },
 
     renderProfile(data) {
-        const profile = document.getElementById('player-profile');
-        profile.style.display = "block";
-        
-        document.getElementById('p-name').innerText = (data.name || "Unknown").toUpperCase();
-        document.getElementById('p-head').src = `https://minotar.net/helm/${data.name}/100.png`;
-        
-        document.getElementById('p-level').innerText = `level: ${data.level || '0.0'}`;
-        document.getElementById('p-coins').innerText = (data.coins || 0).toLocaleString();
-        document.getElementById('p-xp').innerText = (data.xp || 0).toLocaleString();
+        document.getElementById('player-profile').style.display = 'flex';
+        document.getElementById('p-name').innerText = data.name;
+        document.getElementById('p-head').src = `https://minotar.net/helm/${data.name}/128.png`;
+        document.getElementById('p-level').innerText = `LVL ${data.level}`;
+        document.getElementById('p-coins').innerText = data.coins.toLocaleString();
         
         const grid = document.getElementById('inventory-grid');
-        grid.innerHTML = "";
+        grid.innerHTML = '';
         
-        if (data.inventory) {
-            try {
-                const items = typeof data.inventory === 'string' ? JSON.parse(data.inventory) : data.inventory;
-                items.forEach(item => {
-                    const slot = document.createElement('div');
-                    slot.className = "inv-slot";
-                    slot.innerHTML = `<img src="assets/items/${item.id.toLowerCase()}.png" 
-                                       onerror="this.src='https://minecraft.wiki/images/Invicon_Barrier.png'">
-                                      <span class="amt">${item.amount > 1 ? item.amount : ''}</span>`;
-                    grid.appendChild(slot);
-                });
-            } catch(e) {
-                grid.innerHTML = "<p style='color:#444; font-size:12px;'>Inventory data corrupted or empty.</p>";
+        let items = [];
+        try { items = typeof data.inventory === 'string' ? JSON.parse(data.inventory) : data.inventory; } catch(e){}
+        
+        for(let i=0; i<27; i++) {
+            const item = items && items[i] ? items[i] : null;
+            const slot = document.createElement('div');
+            slot.className = `inv-slot ${item ? 'filled' : ''}`;
+            
+            if(item) {
+                const rarity = item.rarity ? item.rarity.toLowerCase() : 'common';
+                slot.classList.add(`rarity-${rarity}`);
+                
+                slot.innerHTML = `
+                    <img src="assets/items/${item.id.toLowerCase()}.png" onerror="this.src='https://minecraft.wiki/images/Invicon_Barrier.png'">
+                    <span class="qty">${item.amount > 1 ? item.amount : ''}</span>
+                    <div class="tooltip">${item.name || item.id}</div>
+                `;
             }
+            grid.appendChild(slot);
+        }
+    },
+
+    async loadLeaderboard() {
+        const tbody = document.getElementById('lb-body');
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Summoning Spirits...</td></tr>';
+        
+        try {
+            const res = await fetch(`/api?type=leaderboard`);
+            const data = await res.json();
+            
+            tbody.innerHTML = '';
+            data.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="rank-col">#${index + 1}</td>
+                    <td class="player-col"><img src="https://minotar.net/avatar/${p.name}/24.png"> ${p.name}</td>
+                    <td class="level-col"><span>${p.level}</span></td>
+                    <td class="coin-col">${p.coins.toLocaleString()} ⛃</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ff5555;">Connection Severed.</td></tr>';
         }
     }
 };
 
-// Start the engine
 window.onload = () => engine.init();
