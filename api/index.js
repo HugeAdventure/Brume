@@ -23,7 +23,7 @@ module.exports = async (req, res) => {
             if (!uuid) return res.status(400).json({ error: "Missing UUID/Name" });
             
             const [rows] = await pool.execute(
-                'SELECT * FROM brume_players WHERE name = ? OR uuid = ? LIMIT 1', 
+                'SELECT * FROM brume_stats WHERE name = ? OR uuid = ? LIMIT 1', 
                 [uuid, uuid]
             );
 
@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
 
         if (type === 'leaderboard') {
             const [rows] = await pool.query(
-                'SELECT name, level, coins, xp FROM brume_players ORDER BY level DESC, xp DESC LIMIT 10'
+                'SELECT name, level, coins, xp FROM brume_stats ORDER BY level DESC, xp DESC LIMIT 10'
             );
             return res.status(200).json(rows);
         }
