@@ -1,8 +1,3 @@
-/**
- * BRUME | Core Engine & Armory System
- * Includes Wiki rendering, Procedural Parallax, and API-linked Player Stats
- */
-
 const WIKI_DATABASE = {
     "intro": {
         branch: "General",
@@ -239,25 +234,27 @@ const armory = {
         ui.setLoading(true);
 
         try {
+            // Calling your new API
             const response = await fetch(`/api/stats?uuid=${encodeURIComponent(input)}`);
             
             if (!response.ok) throw new Error("NOT_FOUND");
 
             const data = await response.json();
             
+            // Animation delay for "feel"
             setTimeout(() => {
                 this.renderProfile(data);
                 ui.setLoading(false);
-                ui.notify(`Archive retrieved for ${data.name || input}`);
-            }, 500);
+                ui.notify(`Archive retrieved for ${data.name}`);
+            }, 600);
 
         } catch (e) {
             ui.setLoading(false);
             document.getElementById('player-profile').style.display = 'none';
             if(e.message === "NOT_FOUND") {
-                ui.notify("Traveler not found in the Brume records.", "error");
+                ui.notify("Traveler not found in the archives.", "error");
             } else {
-                ui.notify("Connection to the archives lost.", "error");
+                ui.notify("Connection to the SQL database failed.", "error");
             }
         }
     },
@@ -267,37 +264,29 @@ const armory = {
         profile.style.display = "block";
         
         document.getElementById('p-name').innerText = (data.name || "Unknown").toUpperCase();
-        document.getElementById('p-head').src = `https://minotar.net/helm/${data.name || 'steve'}/100.png`;
-        document.getElementById('p-level').innerText = `LVL ${data.level || 0}`;
+        document.getElementById('p-head').src = `https://minotar.net/helm/${data.name}/100.png`;
+        
+        document.getElementById('p-level').innerText = `level: ${data.level || '0.0'}`;
         document.getElementById('p-coins').innerText = (data.coins || 0).toLocaleString();
         document.getElementById('p-xp').innerText = (data.xp || 0).toLocaleString();
         
-        const statusEl = document.getElementById('p-status');
-        if(statusEl) {
-            statusEl.innerText = data.online ? "ONLINE" : "OFFLINE";
-            statusEl.style.color = data.online ? "#55FF55" : "#666";
-        }
-
         const grid = document.getElementById('inventory-grid');
         grid.innerHTML = "";
         
-        let items = data.inventory;
-        if (typeof items === 'string') items = JSON.parse(items);
-
-        if (items && Array.isArray(items)) {
-            items.forEach(item => {
-                const slot = document.createElement('div');
-                slot.className = "inv-slot";
-                if (item.id && item.id !== "AIR") {
-                    slot.innerHTML = `
-                        <img src="assets/items/${item.id.toLowerCase()}.png" 
-                             onerror="this.src='https://minecraft.wiki/images/Invicon_Barrier.png'"
-                             title="${item.id}">
-                        <span class="amt">${item.amount > 1 ? item.amount : ''}</span>
-                    `;
-                }
-                grid.appendChild(slot);
-            });
+        if (data.inventory) {
+            try {
+                const items = typeof data.inventory === 'string' ? JSON.parse(data.inventory) : data.inventory;
+                items.forEach(item => {
+                    const slot = document.createElement('div');
+                    slot.className = "inv-slot";
+                    slot.innerHTML = `<img src="assets/items/${item.id.toLowerCase()}.png" 
+                                       onerror="this.src='https://minecraft.wiki/images/Invicon_Barrier.png'">
+                                      <span class="amt">${item.amount > 1 ? item.amount : ''}</span>`;
+                    grid.appendChild(slot);
+                });
+            } catch(e) {
+                grid.innerHTML = "<p style='color:#444; font-size:12px;'>Inventory data corrupted or empty.</p>";
+            }
         }
     }
 };
