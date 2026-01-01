@@ -63,7 +63,7 @@ const ui = {
 };
 
 const engine = {
-    init() {
+    () {
         this.renderNav();
         this.initParallax();
         this.loadPage("intro");
@@ -78,10 +78,22 @@ const engine = {
 
     switchView(viewId) {
         document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-        document.getElementById(`view-${viewId}`).classList.add('active');
         
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.querySelector(`[data-view="${viewId}"]`).classList.add('active');
+        const targetElement = document.getElementById(`view-${viewId}`);
+        if (targetElement) {
+            targetElement.classList.add('active');
+        } else {
+            console.error(`View not found: view-${viewId}`);
+            return;
+        }
+        
+        document.querySelectorAll('.nav-link').forEach(l => {
+            if(l.dataset.view === viewId) {
+                l.classList.add('active');
+            } else {
+                l.classList.remove('active');
+            }
+        });
 
         if (viewId === 'leaderboard') armory.loadLeaderboard();
     },
@@ -225,4 +237,20 @@ const armory = {
     }
 };
 
-window.onload = () => engine.init();
+window.onload = () => engine.init() {
+        this.renderNav();
+        this.initParallax();
+        
+        this.loadPage("intro");
+        
+        document.querySelectorAll('.nav-link').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetView = btn.dataset.view;
+                if(targetView) {
+                    this.switchView(targetView);
+                }
+            });
+        });
+
+        this.attachListeners();
+    },
