@@ -114,10 +114,30 @@ const WIKI_DATABASE = {
 
 const engine = {
     init() {
-        this.renderNav();
-        this.initParallax();
+        // Fix: Ensure parallax container exists before running
+        if(document.getElementById('parallax-container')) this.initParallax();
+        
+        this.renderNav(); // Now implemented below
         this.loadPage("intro"); 
         this.showView('wiki');
+        this.attachListeners();
+    },
+
+    // NEW: This builds the sidebar links from the WIKI_DATABASE
+    renderNav() {
+        const nav = document.getElementById('side-navigation');
+        const branches = [...new Set(Object.values(WIKI_DATABASE).map(item => item.branch))];
+        
+        let html = '';
+        branches.forEach(branch => {
+            html += `<div class="branch-label">${branch}</div>`;
+            for (let key in WIKI_DATABASE) {
+                if (WIKI_DATABASE[key].branch === branch) {
+                    html += `<div class="nav-leaf" id="nav-${key}" onclick="engine.loadPage('${key}')">${WIKI_DATABASE[key].title}</div>`;
+                }
+            }
+        });
+        nav.innerHTML = html;
     },
 
     showView(viewId) {
@@ -125,28 +145,34 @@ const engine = {
         document.getElementById(`view-${viewId}`).classList.add('active');
         
         document.querySelectorAll('.nav-link').forEach(l => {
-            l.classList.toggle('active', l.innerText.toLowerCase() === viewId);
+            // Fix: Check text content correctly
+            l.classList.toggle('active', l.innerText.toLowerCase() === viewId.toLowerCase());
         });
 
         if(viewId === 'leaderboard') this.loadLeaderboard();
     },
 
     async loadLeaderboard() {
-        const response = await fetch('data/global_leaderboard.json');
-        const data = await response.json();
-        const body = document.getElementById('lb-body');
-        body.innerHTML = data.map((p, i) => `
-            <tr>
-                <td style="color: var(--accent)">#${i+1}</td>
-                <td><img src="https://minotar.net/helm/${p.name}/24.png" style="margin-right:10px"> ${p.name}</td>
-                <td>${p.level}</td>
-                <td style="color: #E6DB43">${p.coins.toLocaleString()}</td>
-            </tr>
-        `).join('');
+        // Note: Ensure this endpoint exists on your server
+        try {
+            const response = await fetch('/api/leaderboard'); 
+            const data = await response.json();
+            const body = document.getElementById('lb-body');
+            body.innerHTML = data.map((p, i) => `
+                <tr>
+                    <td style="color: var(--accent)">#${i+1}</td>
+                    <td><img src="https://minotar.net/helm/${p.name}/24.png" style="margin-right:10px"> ${p.name}</td>
+                    <td>${p.level}</td>
+                    <td style="color: #E6DB43">${p.coins.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        } catch(e) { console.log("Leaderboard data not found"); }
     },
 
     loadPage(key) {
         const data = WIKI_DATABASE[key];
+        if(!data) return;
+
         const header = document.getElementById('page-header');
         const render = document.getElementById('page-render');
 
@@ -154,7 +180,9 @@ const engine = {
         render.innerHTML = data.components.map(c => this.components[c.type](c)).join('');
 
         document.querySelectorAll('.nav-leaf').forEach(l => l.classList.remove('active'));
-        document.getElementById(`nav-${key}`).classList.add('active');
+        const activeNav = document.getElementById(`nav-${key}`);
+        if(activeNav) activeNav.classList.add('active');
+        
         document.getElementById('scroll-surface').scrollTop = 0;
     },
 
@@ -203,6 +231,7 @@ const engine = {
 
     initParallax() {
         const stage = document.getElementById('parallax-container');
+        if(!stage) return;
         const blocks = [
             'https://minecraft.wiki/images/Invicon_Grass_Block.png',
             'https://minecraft.wiki/images/Invicon_Deepslate.png',
@@ -213,6 +242,7 @@ const engine = {
             const el = document.createElement('img');
             el.src = blocks[Math.floor(Math.random() * blocks.length)];
             el.className = 'p-block';
+            el.style.position = 'absolute';
             el.style.left = Math.random() * 100 + 'vw';
             el.style.top = Math.random() * 100 + 'vh';
             el.dataset.depth = Math.random() * 0.1 + 0.02;
@@ -246,15 +276,18 @@ const engine = {
 
 const armory = {
     async fetchPlayer() {
-        const name = document.getElementById('player-search').value;
-        const uuid = "YOUR_TEST_UUID"; 
+        const input = document.getElementById('player-search').value;
+        if(!input) return alert("Please enter a name or UUID");
         
         try {
-            const response = await fetch(`data/${uuid}.json`);
+            // CHANGE: Link this to your API route, passing the search term as the uuid query
+            const response = await fetch(`/api/stats?uuid=${input}`);
+            if (!response.ok) throw new Error("Player not found");
+            
             const data = await response.json();
             this.renderProfile(data);
         } catch (e) {
-            alert("Player not found or data not exported yet!");
+            alert("Player not found in database!");
         }
     },
 
@@ -262,27 +295,29 @@ const armory = {
         const profile = document.getElementById('player-profile');
         profile.style.display = "block";
         
-        document.getElementById('p-name').innerText = data.name;
-        document.getElementById('p-head').src = `https://minotar.net/helm/${data.name}/100.png`;
-        document.getElementById('p-level').innerText = `LVL ${data.stats.level}`;
-        document.getElementById('p-coins').innerText = data.stats.coins.toLocaleString();
-        document.getElementById('p-xp').innerText = data.stats.xp.toLocaleString();
+        document.getElementById('p-name').innerText = data.name || data.username;
+        document.getElementById('p-head').src = `https://minotar.net/helm/${data.name || data.username}/100.png`;
+        
+        document.getElementById('p-level').innerText = `LVL ${data.level || 0}`;
+        document.getElementById('p-coins').innerText = (data.coins || 0).toLocaleString();
+        document.getElementById('p-xp').innerText = (data.xp || 0).toLocaleString();
 
         const grid = document.getElementById('inventory-grid');
         grid.innerHTML = "";
         
-        data.inventory.forEach(item => {
-            const slot = document.createElement('div');
-            slot.className = "inv-slot";
-            if (item.id !== "AIR") {
-                slot.innerHTML = `
-                    <img src="assets/items/${item.id}.png" title="${item.id}">
-                    <span class="amt">${item.amount > 1 ? item.amount : ''}</span>
-                `;
-                slot.onclick = () => this.showItemDetails(item.id);
-            }
-            grid.appendChild(slot);
-        });
+        if(data.inventory && Array.isArray(data.inventory)) {
+            data.inventory.forEach(item => {
+                const slot = document.createElement('div');
+                slot.className = "inv-slot";
+                if (item.id !== "AIR") {
+                    slot.innerHTML = `
+                        <img src="assets/items/${item.id}.png" title="${item.id}" onerror="this.src='https://minecraft.wiki/images/Invicon_Barrier.png'">
+                        <span class="amt">${item.amount > 1 ? item.amount : ''}</span>
+                    `;
+                }
+                grid.appendChild(slot);
+            });
+        }
     }
 };
 
