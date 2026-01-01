@@ -217,7 +217,7 @@ const armory = {
     },
 
     renderProfile(data) {
-        document.getElementById('player-profile').style.display = 'flex';
+        document.getElementById('player-profile').style.display = 'block';
         document.getElementById('p-name').innerText = data.name;
         document.getElementById('p-head').src = `https://minotar.net/helm/${data.name}/128.png`;
         document.getElementById('p-level').innerText = `LVL ${data.level}`;
