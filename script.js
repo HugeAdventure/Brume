@@ -237,6 +237,9 @@ const armory = {
             if(item) {
                 const rarity = item.rarity ? item.rarity.toLowerCase() : 'common';
                 slot.classList.add(`rarity-${rarity}`);
+
+                slot.onclick = () => openInspector(item);
+                slot.style.cursor = "pointer";
                 
                 slot.innerHTML = `
                     <img src="assets/items/${item.id.toLowerCase()}.png" onerror="this.src='https://minecraft.wiki/images/Invicon_Barrier.png'">
