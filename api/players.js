@@ -11,8 +11,8 @@ export default async function handler(req, res) {
         const connection = await mysql.createConnection(process.env.DATABASE_URL);
         
         const [rows] = await connection.execute(
-            'SELECT * FROM brume_stats WHERE uuid = ?',
-            [uuid]
+            'SELECT * FROM brume_stats WHERE uuid = ? OR name = ?', 
+            [uuid, uuid]
         );
 
         await connection.end();
