@@ -20,25 +20,31 @@ module.exports = async (req, res) => {
 
     try {
         if (type === 'player') {
-            if (!uuid) return res.status(400).json({ error: "Missing UUID/Name" });
+            if (!uuid) return res.status(400).json({ error: "Missing Name" });
             
             const [rows] = await pool.execute(
                 'SELECT * FROM brume_stats WHERE name = ? OR uuid = ? LIMIT 1', 
                 [uuid, uuid]
             );
 
-            if (rows.length > 0) return res.status(200).json(rows[0]);
+            if (rows.length > 0) {
+                const player = rows[0];
+                
+                if (player.inventory && typeof player.inventory === 'string') {
+                    try {
+                        player.inventory = JSON.parse(player.inventory);
+                    } catch (e) {
+                        console.error("Inventory Parse Error:", e);
+                        player.inventory = [];
+                    }
+                } else if (!player.inventory) {
+                    player.inventory = [];
+                }
+                
+                return res.status(200).json(player);
+            }
             return res.status(404).json({ error: "Player not found" });
         }
-
-        if (type === 'leaderboard') {
-            const [rows] = await pool.query(
-                'SELECT name, level, coins, xp FROM brume_stats ORDER BY level DESC, xp DESC LIMIT 10'
-            );
-            return res.status(200).json(rows);
-        }
-
-        return res.status(400).json({ error: "Invalid type parameter" });
 
     } catch (error) {
         console.error("DB Error:", error);
