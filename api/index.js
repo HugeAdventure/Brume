@@ -34,8 +34,11 @@ module.exports = async (req, res) => {
                     try {
                         player.inventory = JSON.parse(player.inventory);
                     } catch (e) {
-                        console.error("Inventory Parse Error:", e);
-                        player.inventory = [];
+                        console.error("JSON PARSE CRASHED!");
+                        console.error("Error:", e.message);
+                        console.error("Bad Data Snippet:", player.inventory.substring(0, 100) + "...");
+                        
+                        player.inventory = []; 
                     }
                 } else if (!player.inventory) {
                     player.inventory = [];
