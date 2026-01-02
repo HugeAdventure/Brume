@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
     const { type, uuid } = req.query;
 
     try {
+        // --- 1. LEADERBOARD ---
         if (type === 'leaderboard') {
             const [rows] = await pool.query(
                 'SELECT name, level, coins, xp FROM brume_stats ORDER BY level DESC, xp DESC LIMIT 10'
@@ -26,6 +27,7 @@ module.exports = async (req, res) => {
             return res.status(200).json(rows);
         }
 
+        // --- 2. PLAYER ---
         if (type === 'player') {
             if (!uuid) return res.status(400).json({ error: "Missing Name" });
             
@@ -37,21 +39,35 @@ module.exports = async (req, res) => {
             if (rows.length > 0) {
                 const player = rows[0];
                 
+                // --- ROBUST INVENTORY PARSING ---
                 if (player.inventory && typeof player.inventory === 'string') {
                     try {
-                        const cleanString = player.inventory.replace(/[\x00-\x1F\x7F]/g, (char) => {
-                            if (char === '\n' || char === '\t' || char === '\r') return char; 
-                            return ''; 
-                        });
+                        // FIX: Aggressively escape control characters
+                        // 1. Replace Backslashes first (to avoid double escaping later)
+                        let clean = player.inventory.replace(/\\/g, "\\\\");
+                        
+                        // 2. Escape Newlines, Tabs, Returns (CRITICAL FIX)
+                        clean = clean.replace(/\n/g, "\\n")
+                                     .replace(/\r/g, "\\r")
+                                     .replace(/\t/g, "\\t");
 
-                        player.inventory = JSON.parse(cleanString);
+                        // 3. Remove any other weird non-printable characters (0-31)
+                        // But keep the escaped ones we just made
+                        clean = clean.replace(/[\x00-\x1F\x7F]/g, "");
+
+                        player.inventory = JSON.parse(clean);
                         
                     } catch (e) {
                         console.error("JSON Error:", e.message);
+                        // Fallback: Try stripping ALL Minecraft colors (§x...) and trying again
                         try {
-                            const noColor = player.inventory.replace(/§./g, ""); 
+                            // Removes § followed by any character
+                            const noColor = player.inventory.replace(/§./g, "")
+                                                            .replace(/\n/g, "\\n")
+                                                            .replace(/[\x00-\x1F\x7F]/g, "");
                             player.inventory = JSON.parse(noColor);
                         } catch (e2) {
+                            console.error("Fatal JSON Parse Fail");
                             player.inventory = [];
                         }
                     }
