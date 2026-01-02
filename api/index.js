@@ -19,6 +19,13 @@ module.exports = async (req, res) => {
     const { type, uuid } = req.query;
 
     try {
+        if (type === 'leaderboard') {
+            const [rows] = await pool.query(
+                'SELECT name, level, coins, xp FROM brume_stats ORDER BY level DESC, xp DESC LIMIT 10'
+            );
+            return res.status(200).json(rows);
+        }
+
         if (type === 'player') {
             if (!uuid) return res.status(400).json({ error: "Missing Name" });
             
@@ -32,15 +39,23 @@ module.exports = async (req, res) => {
                 
                 if (player.inventory && typeof player.inventory === 'string') {
                     try {
-                        player.inventory = JSON.parse(player.inventory);
-                    } catch (e) {
-                        console.error("JSON PARSE CRASHED!");
-                        console.error("Error:", e.message);
-                        console.error("Bad Data Snippet:", player.inventory.substring(0, 100) + "...");
+                        const cleanString = player.inventory.replace(/[\x00-\x1F\x7F]/g, (char) => {
+                            if (char === '\n' || char === '\t' || char === '\r') return char; 
+                            return ''; 
+                        });
+
+                        player.inventory = JSON.parse(cleanString);
                         
-                        player.inventory = []; 
+                    } catch (e) {
+                        console.error("JSON Error:", e.message);
+                        try {
+                            const noColor = player.inventory.replace(/§./g, ""); 
+                            player.inventory = JSON.parse(noColor);
+                        } catch (e2) {
+                            player.inventory = [];
+                        }
                     }
-                } else if (!player.inventory) {
+                } else {
                     player.inventory = [];
                 }
                 
@@ -49,8 +64,10 @@ module.exports = async (req, res) => {
             return res.status(404).json({ error: "Player not found" });
         }
 
+        return res.status(400).json({ error: "Invalid Request Type" });
+
     } catch (error) {
         console.error("DB Error:", error);
-        return res.status(500).json({ error: "Database connection failed" });
+        return res.status(500).json({ error: "Database connection failed", details: error.message });
     }
 };
