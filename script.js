@@ -217,36 +217,47 @@ const armory = {
     },
 
     renderProfile(data) {
-        document.getElementById('player-profile').style.display = 'block';
+        document.getElementById('player-profile').style.display = 'block'; // Ensure block display
         document.getElementById('p-name').innerText = data.name;
         document.getElementById('p-head').src = `https://minotar.net/helm/${data.name}/128.png`;
-        document.getElementById('p-level').innerText = `LVL ${data.level}`;
-        document.getElementById('p-coins').innerText = data.coins.toLocaleString();
+        document.getElementById('p-level').innerText = `LVL ${data.level || 1}`;
+        document.getElementById('p-coins').innerText = (data.coins || 0).toLocaleString();
         
         const grid = document.getElementById('inventory-grid');
         grid.innerHTML = '';
         
-        let items = [];
-        try { items = typeof data.inventory === 'string' ? JSON.parse(data.inventory) : data.inventory; } catch(e){}
+        const items = Array.isArray(data.inventory) ? data.inventory : [];
         
         for(let i=0; i<27; i++) {
-            const item = items && items[i] ? items[i] : null;
+            const item = items[i]; 
             const slot = document.createElement('div');
-            slot.className = `inv-slot ${item ? 'filled' : ''}`;
             
-            if(item) {
+            if(item && item.id) {
+                slot.className = 'inv-slot filled';
+                
                 const rarity = item.rarity ? item.rarity.toLowerCase() : 'common';
                 slot.classList.add(`rarity-${rarity}`);
-
+                
+                
+                const wikiName = "Invicon_" + item.id.replace(/_/g, '_').replace(/\b\w/g, c => c.toUpperCase());
+                
+                slot.innerHTML = `
+                    <img src="assets/items/${item.id.toLowerCase()}.png" 
+                         onerror="this.src='https://minecraft.wiki/images/${wikiName}.png'; this.onerror=function(){this.src='https://minecraft.wiki/images/Invicon_Barrier.png'};">
+                    
+                    <span class="qty">${item.amount > 1 ? item.amount : ''}</span>
+                    
+                    <!-- Tooltip -->
+                    <div class="tooltip" style="display:none;">${item.name}</div>
+                `;
+                
                 slot.onclick = () => openInspector(item);
                 slot.style.cursor = "pointer";
                 
-                slot.innerHTML = `
-                    <img src="assets/items/${item.id.toLowerCase()}.png" onerror="this.src='https://minecraft.wiki/images/Invicon_Barrier.png'">
-                    <span class="qty">${item.amount > 1 ? item.amount : ''}</span>
-                    <div class="tooltip">${item.name || item.id}</div>
-                `;
+            } else {
+                slot.className = 'inv-slot empty';
             }
+            
             grid.appendChild(slot);
         }
     },
