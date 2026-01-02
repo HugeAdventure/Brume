@@ -377,3 +377,31 @@ td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.03); }
     border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.wiki-alert {
+    padding: 15px; border-left: 4px solid;
+    background: rgba(255,255,255,0.05); margin: 20px 0; border-radius: 0 4px 4px 0;
+    display: flex; gap: 15px; align-items: center;
+}
+.wiki-alert.tip { border-color: #55FF55; }
+.wiki-alert.warn { border-color: #FF5555; background: rgba(255, 85, 85, 0.1); }
+.alert-icon { font-size: 24px; }
+
+.crafting-container {
+    background: #C6C6C6; 
+    padding: 10px; border: 2px solid #555; border-radius: 4px;
+    width: max-content; margin: 20px 0;
+    display: flex; align-items: center; gap: 20px;
+    image-rendering: pixelated;
+    color: black;
+}
+.craft-grid {
+    display: grid; grid-template-columns: repeat(3, 34px); gap: 2px;
+}
+.craft-slot {
+    width: 34px; height: 34px; background: #8B8B8B;
+    border: 2px solid #373737; border-top-color: #FFF; border-left-color: #FFF;
+    display: flex; align-items: center; justify-content: center;
+}
+.craft-arrow { font-size: 24px; color: #444; }
+.craft-slot img { width: 28px; height: 28px; }
