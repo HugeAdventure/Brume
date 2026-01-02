@@ -318,7 +318,11 @@ function openInspector(item) {
     nameEl.style.color = rColor;
     nameEl.innerText = item.name || item.id;
     
-    loreEl.innerHTML = (item.lore || "No description available.").replace(/\n/g, '<br>');
+    const rawLore = item.lore || "No description available.";
+    const htmlLore = rawLore.replace(/\n/g, '<br>');
+    loreEl.innerHTML = parseMinecraftColors(htmlLore);
+    
+    nameEl.innerHTML = parseMinecraftColors(item.name || item.id);
     
     rarityEl.style.color = rColor;
     rarityEl.innerText = (item.rarity || "COMMON").toUpperCase();
@@ -341,6 +345,30 @@ function closeInspector(e) {
         document.getElementById('item-inspector').style.display = 'none';
         document.getElementById('relic-card').style.transform = 'none';
     }
+}
+
+function parseMinecraftColors(text) {
+    if (!text) return "";
+    
+    text = text.replace(/§x((?:§[0-9a-fA-F]){6})/g, (match, hexGroup) => {
+        const hex = hexGroup.replace(/§/g, "");
+        return `<span style="color: #${hex}">`;
+    });
+
+    const codes = {
+        '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
+        '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
+        '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
+        'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF'
+    };
+
+    text = text.replace(/§([0-9a-f])/g, (match, code) => {
+        return `</span><span style="color: ${codes[code]}">`;
+    });
+
+    text = text.replace(/§[lmnor]/g, "");
+
+    return `<span>${text}</span>`;
 }
 
 
