@@ -171,6 +171,31 @@ const engine = {
                 <h3>${d.title}</h3>
                 ${d.rows.map(r => `<div class="info-row"><span>${r[0]}</span><span class="stat-val">${r[1]}</span></div>`).join('')}
             </div>`
+        alert: (d) => `
+            <div class="wiki-alert ${d.style}">
+                <div class="alert-icon">${d.style === 'warn' ? '⚠️' : '💡'}</div>
+                <div>${d.text}</div>
+            </div>`,
+
+        crafting: (d) => {
+            let gridHtml = '';
+            d.grid.forEach(item => {
+                const img = item ? `<img src="assets/items/${item}.png" onerror="this.style.display='none'">` : '';
+                gridHtml += `<div class="craft-slot">${img}</div>`;
+            });
+            
+            const resultImg = `<img src="assets/items/${d.result}.png">`;
+            
+            return `
+            <div style="margin: 20px 0;">
+                <h4 style="margin-bottom:5px; color:#888;">Crafting Recipe</h4>
+                <div class="crafting-container">
+                    <div class="craft-grid">${gridHtml}</div>
+                    <div class="craft-arrow">➡</div>
+                    <div class="craft-slot large">${resultImg}</div>
+                </div>
+            </div>`;
+        }
     },
 
     initParallax() {
