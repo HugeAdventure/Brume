@@ -175,14 +175,22 @@ kbd { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 10px; c
 h1 { font-size: 48px; margin-bottom: 30px; font-weight: 900; }
 .paragraph { line-height: 1.8; font-size: 17px; margin-bottom: 20px; color: #bbb; }
 
-/* Wiki Components */
+
 .infobox {
     float: right; width: 300px; background: rgba(0,0,0,0.4);
     border: 1px solid var(--accent); margin-left: 30px; padding: 15px;
     border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 .infobox-header { text-align: center; font-weight: bold; padding-bottom: 10px; border-bottom: 1px solid #333; }
-.infobox img { width: 100%; height: auto; padding: 20px; }
+.infobox img {
+    width: 100%; 
+    height: auto; 
+    padding: 20px;
+    image-rendering: pixelated;   
+    image-rendering: -moz-crisp-edges; 
+    image-rendering: crisp-edges;
+}
+
 .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #222; }
 
 .ability-card {
@@ -440,4 +448,92 @@ td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.03); }
 
 @keyframes fadeMist {
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS (PHONES)
+   ========================================= */
+@media (max-width: 768px) {
+
+    .ui-shell {
+        flex-direction: column; 
+        height: auto; 
+        overflow-y: auto;
+    }
+
+    .main-header {
+        padding: 0 15px;
+        height: auto;
+        flex-direction: column;
+        gap: 10px;
+        padding-bottom: 10px;
+        position: relative; 
+    }
+    
+    .header-container {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 0;
+    }
+
+    .main-nav { gap: 15px; width: 100%; justify-content: center; }
+    
+    .sidebar {
+        width: 100%;
+        height: 200px; 
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 15px;
+    }
+    
+    .content-stage { padding: 20px; }
+    
+    h1 { font-size: 32px; text-align: center; }
+
+    .infobox {
+        float: none;
+        width: 100%;
+        margin: 0 0 20px 0; 
+    }
+
+    .profile-card {
+        padding: 15px;
+        max-width: 100%;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr; 
+    }
+
+    .inv-grid {
+        grid-template-columns: repeat(5, 1fr);
+        padding: 10px;
+        gap: 5px;
+    }
+
+    .search-box {
+        width: 100%;
+        flex-direction: column;
+        border-radius: 12px;
+    }
+    
+    #player-search { width: 100%; text-align: center; }
+    .search-box button { width: 100%; }
+
+    .lb-table-container {
+        overflow-x: auto;
+    }
+    
+    th, td { padding: 10px; font-size: 11px; }
+
+    #cursor-glow { display: none; }
+    
+    .relic-card {
+        width: 90%; 
+    }
 }
