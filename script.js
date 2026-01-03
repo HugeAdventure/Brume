@@ -201,7 +201,7 @@ const armory = {
 
     renderProfile(data) {
         document.getElementById('player-profile').style.display = 'block'; 
-        document.getElementById('p-name').innerText = data.name;
+        hackerText(document.getElementById('p-name'), data.name.toUpperCase());
         document.getElementById('p-head').src = `https://minotar.net/helm/${data.name}/128.png`;
         document.getElementById('p-level').innerText = `LVL ${data.level || 1}`;
         document.getElementById('p-coins').innerText = (data.coins || 0).toLocaleString();
@@ -358,6 +358,29 @@ function parseMinecraftColors(text) {
     text = text.replace(/§[lmnor]/g, "");
 
     return `<span>${text}</span>`;
+}
+
+function hackerText(element, finalString) {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+    let iterations = 0;
+    
+    const interval = setInterval(() => {
+        element.innerText = finalString
+            .split("")
+            .map((letter, index) => {
+                if(index < iterations) {
+                    return finalString[index];
+                }
+                return letters[Math.floor(Math.random() * 26)];
+            })
+            .join("");
+        
+        if(iterations >= finalString.length) { 
+            clearInterval(interval);
+        }
+        
+        iterations += 1 / 3;
+    }, 30);
 }
 
 // 6. START
