@@ -116,6 +116,10 @@ const engine = {
         const header = document.getElementById('page-header');
         const render = document.getElementById('page-render');
         
+        render.classList.remove('animate-in');
+        void render.offsetWidth;
+        render.classList.add('animate-in');
+        
         if(header) header.innerHTML = `<h1>${data.title}</h1>`;
         if(render) render.innerHTML = data.components.map(c => this.components[c.type](c)).join('');
         
