@@ -1,22 +1,17 @@
+// ==========================================
+// 1. WIKI DATA
+// ==========================================
 const WIKI_DATABASE = {
     "intro": {
         branch: "General",
         title: "Welcome to Brume",
         components: [
-            { type: "paragraph", text: "<b>The Mist has risen.</b> Brume is a procedural dungeon crawler network where no two runs are identical. Built on a custom NBT-driven engine, it features weighted combat, massive bosses, and infinite scaling." },
+            { type: "paragraph", text: "<b>The Mist has risen.</b> Brume is a procedural dungeon crawler network where no two runs are identical." },
             { type: "infobox", data: {
                 title: "Server Status",
                 image: "https://minecraft.wiki/images/Invicon_Crying_Obsidian.png",
-                stats: { "Version": "1.21.1", "Mode": "Rogue-lite", "Dungeons": "Procedural", "Economy": "Gold/Souls" }
-            }},
-            { type: "paragraph", text: "Explore the depths, defeat the <b>Constructs</b>, and extract with your loot before the fog consumes you." }
-        ]
-    },
-    "mech_procgen": {
-        branch: "Mechanics",
-        title: "Procedural Generation",
-        components: [
-            { type: "paragraph", text: "Brume uses a 'Room-Tile' algorithm. Every time you enter a portal, the engine stitches together pre-built schematic fragments into a coherent layout, populating it with random loot chests and mob spawners based on the 'Danger Level'." }
+                stats: { "Version": "1.21.1", "Mode": "Rogue-lite", "Economy": "Gold/Souls" }
+            }}
         ]
     },
     "boss_goliath": {
@@ -26,30 +21,20 @@ const WIKI_DATABASE = {
             { type: "infobox", data: {
                 title: "Construct: Goliath",
                 image: "https://minecraft.wiki/images/Invicon_Iron_Golem.png",
-                stats: { "HP": "25,000", "Type": "Tank", "Weakness": "Lightning", "Drop": "Core Fragment" }
+                stats: { "HP": "25,000", "Type": "Tank", "Drop": "Core Fragment" }
             }},
-            { type: "paragraph", text: "A relic of the Old World. The Goliath slumbered beneath the Cathedral until the mist woke it. Its heavy plating makes it immune to arrows." },
-            { type: "ability_card", name: "Seismic Slam", trigger: "PHASE 2", desc: "Leaps into the air and crashes down, dealing massive AoE damage and slowing players." }
-        ]
-    },
-    "item_void_blade": {
-        branch: "Armory",
-        title: "Voidwalker Blade",
-        components: [
-            { type: "infobox", data: {
-                title: "Voidwalker Blade",
-                image: "https://minecraft.wiki/images/Invicon_Netherite_Sword.png",
-                stats: { "Rarity": "LEGENDARY", "Class": "Assassin", "Dmg": "14-18" }
-            }},
-            { type: "loot_table", title: "Stats", rows: [ ["⚔ Damage", "+18"], ["⚡ Atk Speed", "+1.6"], ["crit Crit Chance", "15%"] ]},
-            { type: "ability_card", name: "Shadow Step", trigger: "RIGHT CLICK", desc: "Teleport 5 blocks forward and become invisible for 2 seconds. Cooldown: 10s." }
+            { type: "paragraph", text: "A relic of the Old World. Its heavy plating makes it immune to arrows." }
         ]
     }
 };
 
+// ==========================================
+// 2. UI ENGINE
+// ==========================================
 const ui = {
     notify(message, type = 'info') {
         const container = document.getElementById('notification-container');
+        if(!container) return;
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `<span>${type === 'error' ? '!' : '✓'}</span> ${message}`;
@@ -58,15 +43,15 @@ const ui = {
         setTimeout(() => toast.remove(), 3500);
     },
     setLoading(state) {
-        document.getElementById('global-loader').style.display = state ? 'flex' : 'none';
+        const loader = document.getElementById('global-loader');
+        if(loader) loader.style.display = state ? 'flex' : 'none';
     }
 };
 
 // ==========================================
-// 3. CORE ENGINE (Fixed)
+// 3. CORE ENGINE
 // ==========================================
 const engine = {
-    // 1. Fixed the missing function name 'init'
     init() {
         this.renderNav();
         this.initParallax();
@@ -82,10 +67,9 @@ const engine = {
             });
         });
 
-        // Search Key Listener (Press '/')
+        // Search Key Listener
         window.addEventListener('keydown', (e) => {
             if(e.key === '/') {
-                // Only focus if Wiki is active
                 if(document.getElementById('view-wiki').classList.contains('active')) {
                     e.preventDefault();
                     document.getElementById('wiki-search')?.focus();
@@ -100,17 +84,11 @@ const engine = {
         const targetElement = document.getElementById(`view-${viewId}`);
         if (targetElement) {
             targetElement.classList.add('active');
-        } else {
-            console.error(`View not found: view-${viewId}`);
-            return;
         }
         
         document.querySelectorAll('.nav-link').forEach(l => {
-            if(l.dataset.view === viewId) {
-                l.classList.add('active');
-            } else {
-                l.classList.remove('active');
-            }
+            if(l.dataset.view === viewId) l.classList.add('active');
+            else l.classList.remove('active');
         });
 
         if (viewId === 'leaderboard') armory.loadLeaderboard();
@@ -171,37 +149,11 @@ const engine = {
                 <h3>${d.title}</h3>
                 ${d.rows.map(r => `<div class="info-row"><span>${r[0]}</span><span class="stat-val">${r[1]}</span></div>`).join('')}
             </div>`
-        alert: (d) => `
-            <div class="wiki-alert ${d.style}">
-                <div class="alert-icon">${d.style === 'warn' ? '⚠️' : '💡'}</div>
-                <div>${d.text}</div>
-            </div>`,
-
-        crafting: (d) => {
-            let gridHtml = '';
-            d.grid.forEach(item => {
-                const img = item ? `<img src="assets/items/${item}.png" onerror="this.style.display='none'">` : '';
-                gridHtml += `<div class="craft-slot">${img}</div>`;
-            });
-            
-            const resultImg = `<img src="assets/items/${d.result}.png">`;
-            
-            return `
-            <div style="margin: 20px 0;">
-                <h4 style="margin-bottom:5px; color:#888;">Crafting Recipe</h4>
-                <div class="crafting-container">
-                    <div class="craft-grid">${gridHtml}</div>
-                    <div class="craft-arrow">➡</div>
-                    <div class="craft-slot large">${resultImg}</div>
-                </div>
-            </div>`;
-        }
     },
 
     initParallax() {
         const container = document.getElementById('parallax-container');
         if(!container) return;
-        
         for(let i=0; i<20; i++) {
             const d = document.createElement('div');
             d.className = 'mist-particle';
@@ -218,7 +170,9 @@ const engine = {
     }
 };
 
-
+// ==========================================
+// 4. ARMORY & STATS
+// ==========================================
 const armory = {
     async fetchPlayer() {
         const input = document.getElementById('player-search').value.trim();
@@ -226,8 +180,12 @@ const armory = {
 
         ui.setLoading(true);
         try {
-            const res = await fetch(`/api?type=player&uuid=${input}`);
-            const data = await res.json();
+            const res = await fetch(`/api/index?type=player&uuid=${input}`);
+            const text = await res.text();
+            
+            let data;
+            try { data = JSON.parse(text); } 
+            catch(e) { throw new Error("Server Error (HTML Response)"); }
             
             if(data.error) throw new Error(data.error);
 
@@ -242,7 +200,7 @@ const armory = {
     },
 
     renderProfile(data) {
-        document.getElementById('player-profile').style.display = 'block'; // Ensure block display
+        document.getElementById('player-profile').style.display = 'block'; 
         document.getElementById('p-name').innerText = data.name;
         document.getElementById('p-head').src = `https://minotar.net/helm/${data.name}/128.png`;
         document.getElementById('p-level').innerText = `LVL ${data.level || 1}`;
@@ -263,35 +221,33 @@ const armory = {
                 const rarity = item.rarity ? item.rarity.toLowerCase() : 'common';
                 slot.classList.add(`rarity-${rarity}`);
                 
-                
+                // Wiki Image Formatter
                 const wikiName = "Invicon_" + item.id.replace(/_/g, '_').replace(/\b\w/g, c => c.toUpperCase());
                 
                 slot.innerHTML = `
                     <img src="assets/items/${item.id.toLowerCase()}.png" 
                          onerror="this.src='https://minecraft.wiki/images/${wikiName}.png'; this.onerror=function(){this.src='https://minecraft.wiki/images/Invicon_Barrier.png'};">
-                    
                     <span class="qty">${item.amount > 1 ? item.amount : ''}</span>
-                    
-                    <!-- Tooltip -->
-                    <div class="tooltip" style="display:none;">${item.name}</div>
                 `;
                 
+                // Add Click Handler for Inspector
                 slot.onclick = () => openInspector(item);
                 slot.style.cursor = "pointer";
                 
             } else {
                 slot.className = 'inv-slot empty';
             }
-            
             grid.appendChild(slot);
         }
     },
+
     async loadLeaderboard() {
         const tbody = document.getElementById('lb-body');
+        if(!tbody) return;
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Summoning Spirits...</td></tr>';
         
         try {
-            const res = await fetch(`/api?type=leaderboard`);
+            const res = await fetch(`/api/index?type=leaderboard`);
             const data = await res.json();
             
             tbody.innerHTML = '';
@@ -311,6 +267,9 @@ const armory = {
     }
 };
 
+// ==========================================
+// 5. INSPECTOR & HELPERS
+// ==========================================
 
 function openInspector(item) {
     if(!item) return;
@@ -318,49 +277,51 @@ function openInspector(item) {
     const modal = document.getElementById('item-inspector');
     const card = document.getElementById('relic-card');
     
+    // 1. Icon
     const icon = document.getElementById('insp-icon');
+    const wikiName = "Invicon_" + item.id.replace(/_/g, '_').replace(/\b\w/g, c => c.toUpperCase());
     icon.src = `assets/items/${item.id.toLowerCase()}.png`;
-    icon.onerror = () => icon.src = 'https://minecraft.wiki/images/Invicon_Barrier.png'; 
+    icon.onerror = () => icon.src = `https://minecraft.wiki/images/${wikiName}.png`; 
     
+    // Enchant Glint
     if (item.enchanted) icon.classList.add('enchanted-glint');
     else icon.classList.remove('enchanted-glint');
 
+    // 2. Data
     const nameEl = document.getElementById('insp-name');
     const loreEl = document.getElementById('insp-lore');
     const rarityEl = document.getElementById('insp-rarity');
     const glowEl = document.getElementById('insp-glow');
 
     const rarityColors = {
-        'COMMON': '#ffffff',
-        'RARE': '#55FFFF', // MC Aqua
-        'EPIC': '#AA00AA', // MC Purple
-        'LEGENDARY': '#FFAA00', // MC Gold
-        'MYTHIC': '#FF5555' // MC Red
+        'COMMON': '#ffffff', 'UNCOMMON': '#55FF55', 'RARE': '#55FFFF', 
+        'EPIC': '#AA00AA', 'LEGENDARY': '#FFAA00', 'MYTHIC': '#FF5555'
     };
     
     const rColor = rarityColors[item.rarity?.toUpperCase()] || '#ffffff';
     
     nameEl.style.color = rColor;
-    nameEl.innerText = item.name || item.id;
+    // Parse Colors for Name
+    nameEl.innerHTML = parseMinecraftColors(item.name || item.id);
     
+    // Parse Colors for Lore
     const rawLore = item.lore || "No description available.";
     const htmlLore = rawLore.replace(/\n/g, '<br>');
     loreEl.innerHTML = parseMinecraftColors(htmlLore);
-    
-    nameEl.innerHTML = parseMinecraftColors(item.name || item.id);
     
     rarityEl.style.color = rColor;
     rarityEl.innerText = (item.rarity || "COMMON").toUpperCase();
     
     glowEl.style.backgroundColor = rColor;
 
+    // 3. Show
     modal.style.display = 'flex';
     
+    // 4. Tilt Effect
     modal.onmousemove = (e) => {
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
-        
         card.style.transform = `perspective(1000px) rotateY(${x / 20}deg) rotateX(${-y / 20}deg)`;
     };
 }
@@ -375,11 +336,13 @@ function closeInspector(e) {
 function parseMinecraftColors(text) {
     if (!text) return "";
     
+    // Hex (§x§R§R§G§G§B§B)
     text = text.replace(/§x((?:§[0-9a-fA-F]){6})/g, (match, hexGroup) => {
         const hex = hexGroup.replace(/§/g, "");
         return `<span style="color: #${hex}">`;
     });
 
+    // Standard Codes
     const codes = {
         '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
         '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
@@ -391,10 +354,11 @@ function parseMinecraftColors(text) {
         return `</span><span style="color: ${codes[code]}">`;
     });
 
+    // Strip Formatting codes (l, m, n, o, r)
     text = text.replace(/§[lmnor]/g, "");
 
     return `<span>${text}</span>`;
 }
 
-
+// 6. START
 window.onload = () => engine.init();
