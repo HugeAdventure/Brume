@@ -3,60 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BRUME | The Wiki </title>
+    <title>BRUME | The Wiki</title>
+    <!-- Google Fonts: Inter for UI, JetBrains for Data/Code -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- SYSTEM OVERLAYS -->
     <div id="notification-container"></div>
+    
     <div id="global-loader" class="loader-overlay" style="display: none;">
         <div class="mist-spinner"></div>
         <p>ACCESSING ARCHIVES...</p>
     </div>
 
+    <!-- BACKGROUND VFX (MIST ENGINE) -->
     <div class="mist-engine">
         <div id="parallax-container"></div>
         <div class="mist-layer mist-1"></div>
         <div class="mist-layer mist-2"></div>
     </div>
 
+    <!-- MAIN NAVIGATION HEADER -->
     <header class="main-header glass">
         <div class="header-container">
-            <div class="brand" onclick="engine.showView('wiki')">
+            <div class="brand" onclick="engine.switchView('wiki')">
                 <span class="logo-text">BRUME</span>
             </div>
+            
             <nav class="main-nav">
                 <button class="nav-link active" data-view="wiki">WIKI</button>
                 <button class="nav-link" data-view="armory">STATS</button>
                 <button class="nav-link" data-view="leaderboard">LEADERBOARD</button>
             </nav>
+
             <div class="header-actions">
                 <button class="play-btn" onclick="engine.copyIP()">PLAY.BRUME.NET</button>
             </div>
         </div>
     </header>
 
+    <!-- CONTENT SHELL -->
     <div class="ui-shell">
+        
+        <!-- 1. WIKI SECTION -->
         <section id="view-wiki" class="view-container active">
             <aside class="sidebar glass">
                 <div class="search-container">
                     <input type="text" id="wiki-search" placeholder="Search archive..." onkeyup="engine.search(this.value)">
                     <kbd>/</kbd>
                 </div>
+                <!-- This is where the Forge branches (Bestiary, General, etc.) are injected -->
                 <nav class="nav-tree" id="side-navigation"></nav>
             </aside>
+
             <main class="content-stage" id="scroll-surface">
                 <div class="content-container">
+                    <!-- Title injected here -->
                     <header id="page-header" class="animate-in"></header>
+                    <!-- All Forge modules (Grids, Cards, Text, Loot) injected here -->
                     <article id="page-render" class="animate-in"></article>
                 </div>
             </main>
         </section>
 
+        <!-- 2. ARMORY SECTION -->
         <section id="view-armory" class="view-container">
             <div class="armory-hero">
                 <h1>PLAYER ARMORY</h1>
-                <p>Inspect the gear and statistics of any Player.</p>
+                <p>Inspect gear and statistics retrieved from the Mist.</p>
                 <div class="search-box">
                     <input type="text" id="player-search" placeholder="Enter Username...">
                     <button onclick="armory.fetchPlayer()">SEARCH</button>
@@ -67,34 +83,47 @@
                 <div class="profile-header">
                     <img id="p-head" src="" alt="Head">
                     <div class="name-box">
-                        <h2 id="p-name">PlayerName</h2>
+                        <h2 id="p-name">PLAYER</h2>
                         <div id="p-level" class="level-badge">LVL 0</div>
                     </div>
                 </div>
+                
                 <div class="stats-grid">
                     <div class="stat-item"><small>COINS</small><span id="p-coins">0</span></div>
                     <div class="stat-item"><small>TOTAL XP</small><span id="p-xp">0</span></div>
-                    <div class="stat-item"><small>STATUS</small><span id="p-status" style="color: #55FF55;">ONLINE</span></div>
+                    <div class="stat-item"><small>STATUS</small><span id="p-status" style="color: #55FF55;">STABLE</span></div>
                 </div>
+
                 <h3>INVENTORY</h3>
+                <!-- 27-slot Minecraft style grid -->
                 <div id="inventory-grid" class="inv-grid"></div>
             </div>
         </section>
 
+        <!-- 3. LEADERBOARD SECTION -->
         <section id="view-leaderboard" class="view-container">
             <div class="leaderboard-wrapper">
-                <h1>TOP PLAYERS</h1>
+                <h1>TOP ENTITIES</h1>
                 <div class="lb-table-container glass">
                     <table id="lb-table">
                         <thead>
-                            <tr><th>RANK</th><th>PLAYER</th><th>LEVEL</th><th>COINS</th></tr>
+                            <tr>
+                                <th>RANK</th>
+                                <th>PLAYER</th>
+                                <th>LEVEL</th>
+                                <th>COINS</th>
+                            </tr>
                         </thead>
-                        <tbody id="lb-body"></tbody>
+                        <tbody id="lb-body">
+                            <!-- Injected by armory.loadLeaderboard() -->
+                        </tbody>
                     </table>
                 </div>
             </div>
         </section>
     </div>
+
+    <!-- ITEM INSPECTOR (3D HOVER OVERLAY) -->
     <div id="item-inspector" class="inspector-overlay" onclick="closeInspector(event)">
         <div class="relic-card" id="relic-card">
             
@@ -106,8 +135,7 @@
             <div class="relic-data">
                 <div class="mc-tooltip">
                     <div class="item-name" id="insp-name">Item Name</div>
-                    <div class="item-lore" id="insp-lore">
-                    </div>
+                    <div class="item-lore" id="insp-lore"></div>
                     <div class="item-rarity" id="insp-rarity">COMMON</div>
                 </div>
             </div>
@@ -115,6 +143,7 @@
         </div>
     </div>
 
+    <!-- CORE SCRIPT -->
     <script src="script.js"></script>
 </body>
 </html>
